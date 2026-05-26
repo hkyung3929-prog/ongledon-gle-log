@@ -408,6 +408,10 @@ function openM(){$('f-date').value=new Date().toISOString().split('T')[0];$('f-d
 function closeM(){$('mov').classList.remove('open');}
 function mwc(e){if(e.target===$('mov'))closeM();}
 function subTx(){const desc=$('f-desc').value.trim(),amt=parseFloat($('f-amt').value),date=$('f-date').value;if(!amt||amt<=0||!date)return;const cat=sc==='직접입력'?(desc||'기타'):sc;(S.txs=S.txs||[]).push({id:Date.now()+'',cat,desc:desc||cat,amt,date});save();closeM();renderAll();}
+window.pk=pk;window.doLock=doLock;window.gt=gt;window.cm=cm;
+window.carryOver=carryOver;window.moveEmg=moveEmg;
+window.delT=delT;window.ap=ap;window.dp=dp;window.sf=sf;
+window.sC=sC;window.openM=openM;window.closeM=closeM;window.mwc=mwc;window.subTx=subTx;
 (async()=>{await load();renderAll();})();
 </script>
 </body>
