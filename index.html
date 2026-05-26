@@ -321,7 +321,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<script>
+<script type="module">
 const PIN='0706',CATS=[{n:'식비',e:'🍚'},{n:'교통',e:'🚌'},{n:'쇼핑',e:'🛍'},{n:'카페',e:'☕'},{n:'의료',e:'💊'},{n:'생활',e:'🏠'},{n:'문화',e:'🎬'},{n:'기타',e:'📦'},{n:'직접입력',e:'✏️'}];
 let pin='',sc='식비',hf='all',cur=new Date(),S={income:[],fixed:[],txs:[]};
 const $=id=>document.getElementById(id);
@@ -332,8 +332,12 @@ function mkey(){
   return{y,m,ey,em,label:m+'월 17일 ~ '+em+'월 16일'};
 }
 function inPeriod(date){const d=new Date(date);const{y,m,ey,em}=mkey();return d>=new Date(y,m-1,17)&&d<=new Date(ey,em-1,16);}
-function load(){try{const d=localStorage.getItem('odg7');if(d)S=JSON.parse(d)}catch(e){}}
-function save(){try{localStorage.setItem('odg7',JSON.stringify(S))}catch(e){}}
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,doc,getDoc,setDoc}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const _app=initializeApp({apiKey:"AIzaSyBIqNpl10BpwOtU2SCk5547z4TDJDP2E_o",authDomain:"ongledon-gle-log.firebaseapp.com",projectId:"ongledon-gle-log",storageBucket:"ongledon-gle-log.firebasestorage.app",messagingSenderId:"845146231976",appId:"1:845146231976:web:5cb1cf3152b5efa74b1e9d"});
+const _db=getFirestore(_app);
+async function load(){try{const d=await getDoc(doc(_db,'data','main'));if(d.exists())S=d.data();}catch(e){console.error(e);}}
+async function save(){try{await setDoc(doc(_db,'data','main'),S);}catch(e){console.error(e);}}
 function pk(k){
   $('perr').textContent='';
   k==='del'?pin=pin.slice(0,-1):pin.length<4&&(pin+=k);
@@ -404,7 +408,7 @@ function openM(){$('f-date').value=new Date().toISOString().split('T')[0];$('f-d
 function closeM(){$('mov').classList.remove('open');}
 function mwc(e){if(e.target===$('mov'))closeM();}
 function subTx(){const desc=$('f-desc').value.trim(),amt=parseFloat($('f-amt').value),date=$('f-date').value;if(!amt||amt<=0||!date)return;const cat=sc==='직접입력'?(desc||'기타'):sc;(S.txs=S.txs||[]).push({id:Date.now()+'',cat,desc:desc||cat,amt,date});save();closeM();renderAll();}
-load();
+(async()=>{await load();renderAll();})();
 </script>
 </body>
 </html>
