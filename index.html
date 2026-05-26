@@ -334,7 +334,7 @@ function mkey(){
 function inPeriod(date){const d=new Date(date);const{y,m,ey,em}=mkey();return d>=new Date(y,m-1,17)&&d<=new Date(ey,em-1,16);}
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,doc,getDoc,setDoc}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-const _app=initializeApp({apiKey:"AIzaSyBIqNpl10BpwOtU2SCk5547z4TDJDP2E_o",authDomain:"ongledon-gle-log.firebaseapp.com",projectId:"ongledon-gle-log",storageBucket:"ongledon-gle-log.firebasestorage.app",messagingSenderId:"845146231976",appId:"1:845146231976:web:5cb1cf3152b5efa74b1e9d"});
+const _app=initializeApp({apiKey:"AIzaSyB9REnEH8U9EbcEsuV8mb8Ntjxefi53TJA",authDomain:"ongledon-gle-log-c5a98.firebaseapp.com",projectId:"ongledon-gle-log-c5a98",storageBucket:"ongledon-gle-log-c5a98.firebasestorage.app",messagingSenderId:"370209708253",appId:"1:370209708253:web:81e3272987e8a0576b6334"});
 const _db=getFirestore(_app);
 async function load(){try{const d=await getDoc(doc(_db,'data','main'));if(d.exists())S=d.data();}catch(e){console.error(e);}}
 async function save(){try{await setDoc(doc(_db,'data','main'),S);}catch(e){console.error(e);}}
