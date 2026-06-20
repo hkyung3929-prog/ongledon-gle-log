@@ -175,9 +175,10 @@ body{display:flex;justify-content:center}
 .pi-a.r{color:var(--red)}
 .pdel{background:none;border:none;color:var(--border2);cursor:pointer;font-size:12px;padding:2px 5px;transition:color .1s}
 .pdel:hover{color:var(--red)}
-.rtog{background:none;border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:12px;
-  padding:2px 6px;margin-right:2px;opacity:.3;filter:grayscale(1);transition:all .12s;line-height:1}
-.rtog.on{opacity:1;filter:none;border-color:var(--accent)}
+.rtog{background:none;border:1px solid var(--border2);border-radius:6px;cursor:pointer;font-size:13px;
+  padding:3px 7px;margin-right:3px;opacity:.5;filter:grayscale(1);transition:all .12s;line-height:1}
+.rtog.on{opacity:1;filter:none;border-color:var(--accent);background:var(--surface3)}
+.hint{font-size:10px;color:var(--text3);padding:8px 18px;background:var(--bg);border-bottom:1px solid var(--border);line-height:1.45}
 .padd-row{display:flex;gap:7px;padding:10px 18px;background:var(--surface2);border-bottom:1px solid var(--border)}
 .pi2{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;
   color:var(--text);font-size:12px;outline:none;font-family:'Noto Sans KR',sans-serif;transition:border-color .1s;font-weight:400;min-width:0}
@@ -306,6 +307,10 @@ body{display:flex;justify-content:center}
       <span class="net-l">💸 이번 주기 지출 총액</span>
       <span class="net-v" id="b-spent" style="color:var(--red);font-size:18px">0원</span>
     </div>
+    <div class="spentbar" style="border-top:none">
+      <span class="net-l">🔄 지난 주기 이월</span>
+      <span class="net-v" id="b-carry" style="color:var(--text2);font-size:18px">0원</span>
+    </div>
     <div class="stitle">현금 관리</div>
     <div class="bal-move">
       <span class="bal-move-lbl">금고→지갑 충전</span>
@@ -335,6 +340,7 @@ body{display:flex;justify-content:center}
   <div class="panel" id="p-plan">
     <div class="pb">
       <div class="ph"><span class="ph-t">수입</span><span class="ph-v g" id="pt-i">0원</span></div>
+      <div class="hint">🔁 를 켜면 매달 17일 자동으로 잔액에 적립돼요 · 매달 반복되는 수입(예: 생활비)만 켜세요</div>
       <div id="pi-i"></div>
       <div class="padd-row">
         <input class="pi2 pn" id="ii-n" placeholder="항목 (예: 월급)">
@@ -432,6 +438,7 @@ function renderAll(){
   const we=$('b-wallet');we.textContent=fmt(wallet);we.style.color=wallet<0?'var(--red)':'var(--accent)';
   $('b-emg').textContent=fmt(emg);
   $('b-spent').textContent=fmt(tC);
+  $('b-carry').textContent=fmt(S.carriedPeriod===pKeyOf(new Date())?Number(S.carriedOver||0):0);
   const srt=[...mTx].sort((a,b)=>b.date.localeCompare(a.date));
   $('s-list').innerHTML=srt.map(txH).join('')||emp('아래 버튼으로 기록하세요');
   rPlan(tI,tF);rHist(mTx);
@@ -442,7 +449,7 @@ function delT(id){const t=S.txs.find(t=>t.id===id);if(t&&t.w)S.wallet=Number(S.w
 function moveEmg(dir){const a=parseFloat($('emg-amt').value);if(!a||a<=0)return;const safe=Number(S.safe||0),emg=Number(S.emergency||0);if(dir===1){const mv=Math.min(a,safe);S.safe=safe-mv;S.emergency=emg+mv;}else{const mv=Math.min(a,emg);S.emergency=emg-mv;S.safe=safe+mv;}$('emg-amt').value='';save();renderAll();}
 function moveWallet(dir){const a=parseFloat($('wal-amt').value);if(!a||a<=0)return;const safe=Number(S.safe||0),wallet=Number(S.wallet||0);if(dir===1){const mv=Math.min(a,safe);S.safe=safe-mv;S.wallet=wallet+mv;}else{const mv=Math.min(a,wallet);S.wallet=wallet-mv;S.safe=safe+mv;}$('wal-amt').value='';save();renderAll();}
 function adjSafe(dir){const a=parseFloat($('safe-amt').value);if(!a||a<=0)return;let safe=Number(S.safe||0)+dir*a;if(safe<0)safe=0;S.safe=safe;$('safe-amt').value='';save();renderAll();}
-function rPlan(tI,tF){const net=tI-tF;$('pt-i').textContent=fmt(tI);$('pt-f').textContent=fmt(tF);const nv=$('net-v');nv.textContent=fmt(net);nv.style.color=net>=0?'var(--accent)':'var(--red)';const an=autoNet();const av=$('auto-v');av.textContent=(an>=0?'+':'−')+fmt(Math.abs(an));av.style.color=an>=0?'var(--green)':'var(--red)';const ri=recIncome();const done=Array.isArray(S.settled)&&S.settled.includes(pKeyOf(new Date()));$('auto-st').textContent=ri>0?(done?'· 이번 주기 반영됨 ✓':'· 17일 적립 예정'):'· 🔁 켜면 시작';$('pi-i').innerHTML=(S.income||[]).map((x,i)=>`<div class="pi"><span class="pi-n">${x.n}</span><span class="pi-a g">+${Math.round(x.a).toLocaleString('ko-KR')}원</span><button class="rtog${x.r?' on':''}" onclick="toggleR(${i})" title="매달 반복 자동적립">🔁</button><button class="pdel" onclick="dp('income',${i})">✕</button></div>`).join('');$('pi-f').innerHTML=(S.fixed||[]).map((x,i)=>`<div class="pi"><span class="pi-n">${x.n}</span><span class="pi-a r">−${Math.round(x.a).toLocaleString('ko-KR')}원</span><button class="pdel" onclick="dp('fixed',${i})">✕</button></div>`).join('');}
+function rPlan(tI,tF){const net=tI-tF;$('pt-i').textContent=fmt(tI);$('pt-f').textContent=fmt(tF);const nv=$('net-v');nv.textContent=fmt(net);nv.style.color=net>=0?'var(--accent)':'var(--red)';const an=autoNet();const av=$('auto-v');av.textContent=(an>=0?'+':'−')+fmt(Math.abs(an));av.style.color=an>=0?'var(--green)':'var(--red)';const ri=recIncome();const done=Array.isArray(S.settled)&&S.settled.includes(pKeyOf(new Date()));$('auto-st').textContent=ri>0?(done?'· 이번 주기 반영됨 ✓':'· 17일 적립 예정'):'· 수입 항목에 🔁 켜기';$('pi-i').innerHTML=(S.income||[]).map((x,i)=>`<div class="pi"><span class="pi-n">${x.n}</span><span class="pi-a g">+${Math.round(x.a).toLocaleString('ko-KR')}원</span><button class="rtog${x.r?' on':''}" onclick="toggleR(${i})" title="매달 반복 자동적립">🔁</button><button class="pdel" onclick="dp('income',${i})">✕</button></div>`).join('');$('pi-f').innerHTML=(S.fixed||[]).map((x,i)=>`<div class="pi"><span class="pi-n">${x.n}</span><span class="pi-a r">−${Math.round(x.a).toLocaleString('ko-KR')}원</span><button class="pdel" onclick="dp('fixed',${i})">✕</button></div>`).join('');}
 function ap(t){const isI=t==='income';const n=$(isI?'ii-n':'if-n').value.trim(),a=parseFloat($(isI?'ii-a':'if-a').value);if(!n||!a||a<=0)return;(S[t]=S[t]||[]).push({n,a});$(isI?'ii-n':'if-n').value='';$(isI?'ii-a':'if-a').value='';save();settlePeriods();renderAll();}
 function dp(t,i){S[t].splice(i,1);save();settlePeriods();renderAll();}
 function recIncome(){return (S.income||[]).filter(i=>i.r).reduce((s,i)=>s+Number(i.a),0);}
@@ -450,7 +457,7 @@ function fixTotal(){return (S.fixed||[]).reduce((s,i)=>s+Number(i.a),0);}
 function autoNet(){return recIncome()-fixTotal();}
 function pKeyOf(d){let y=d.getFullYear(),m=d.getMonth()+1;if(d.getDate()<17){m--;if(m===0){m=12;y--;}}return y+'-'+m;}
 function pSeq(a,b){const[ay,am]=a.split('-').map(Number),[by,bm]=b.split('-').map(Number);const o=[];let y=ay,m=am,g=0;while((y<by||(y===by&&m<=bm))&&g<240){o.push(y+'-'+m);m++;if(m>12){m=1;y++;}g++;}return o;}
-function settlePeriods(){if(recIncome()<=0)return;if(!Array.isArray(S.settled))S.settled=[];const cp=pKeyOf(new Date());if(S.autoFrom===undefined)S.autoFrom=cp;const net=autoNet();let ch=false;for(const k of pSeq(S.autoFrom,cp)){if(!S.settled.includes(k)){S.safe=Number(S.safe||0)+net;S.settled.push(k);ch=true;}}if(ch)save();}
+function settlePeriods(){if(recIncome()<=0)return;if(!Array.isArray(S.settled))S.settled=[];const cp=pKeyOf(new Date());if(S.autoFrom===undefined)S.autoFrom=cp;const net=autoNet();let ch=false;for(const k of pSeq(S.autoFrom,cp)){if(!S.settled.includes(k)){if(k===cp){S.carriedOver=Number(S.safe||0)+Number(S.wallet||0);S.carriedPeriod=cp;}S.safe=Number(S.safe||0)+net;S.settled.push(k);ch=true;}}if(ch)save();}
 function toggleR(i){if(!S.income||!S.income[i])return;S.income[i].r=!S.income[i].r;save();settlePeriods();renderAll();}
 function rHist(txs){const f=hf==='all'?txs:txs.filter(t=>t.cat===hf);$('h-list').innerHTML=[...f].sort((a,b)=>b.date.localeCompare(a.date)).map(txH).join('')||emp('해당 내역 없음');}
 function sf(f,btn){hf=f;document.querySelectorAll('.hfb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rHist(S.txs.filter(t=>inPeriod(t.date)));}
